@@ -1,0 +1,41 @@
+import { useState, useEffect } from 'react';
+
+const STORAGE_KEY = 'stock_app_data';
+
+export function useStockUpdates() {
+    const [products, setProducts] = useState(() => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.error("Failed to load data", e);
+            return [];
+        }
+    });
+
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    }, [products]);
+
+    const addProduct = (product) => {
+        setProducts(prev => [
+            ...prev,
+            { ...product, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+        ]);
+    };
+
+    const updateProduct = (id, updates) => {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    };
+
+    const deleteProduct = (id) => {
+        setProducts(prev => prev.filter(p => p.id !== id));
+    };
+
+    return {
+        products,
+        addProduct,
+        updateProduct,
+        deleteProduct
+    };
+}
