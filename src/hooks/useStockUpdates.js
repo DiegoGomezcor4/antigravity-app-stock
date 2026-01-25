@@ -50,9 +50,16 @@ export function useStockUpdates() {
     const updateProduct = async (id, updates) => {
         setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
 
+        // Prepare updates for DB (snake_case)
+        const dbUpdates = { ...updates };
+        if (dbUpdates.minStock !== undefined) {
+            dbUpdates.min_stock = dbUpdates.minStock;
+            delete dbUpdates.minStock;
+        }
+
         const { error } = await supabase
             .from('products')
-            .update(updates)
+            .update(dbUpdates)
             .eq('id', id);
 
         if (error) console.error('Error updating product:', error);
