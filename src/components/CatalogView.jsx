@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { WhatsAppButton } from './WhatsAppButton';
 
 export function CatalogView({ onRequestLogin }) {
     const [products, setProducts] = useState([]);
@@ -160,6 +161,7 @@ export function CatalogView({ onRequestLogin }) {
                     </aside>
                 )}
             </div>
+            <WhatsAppButton />
         </div>
     );
 }
