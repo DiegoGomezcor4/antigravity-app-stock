@@ -4,8 +4,10 @@ import { WhatsAppButton } from './WhatsAppButton';
 
 export function CatalogView({ onRequestLogin }) {
     const [products, setProducts] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+
 
     useEffect(() => {
         fetchPublicProducts();
@@ -22,6 +24,10 @@ export function CatalogView({ onRequestLogin }) {
         if (error) console.error('Error fetching catalog:', error);
         else setProducts(data || []);
     }
+
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const addToCart = (product) => {
         setCart(prev => {
@@ -87,37 +93,65 @@ export function CatalogView({ onRequestLogin }) {
 
             <div className="main-layout" style={{ gridTemplateColumns: isCartOpen ? '1fr 350px' : '1fr' }}>
                 {/* Product Grid */}
-                <div className="product-grid">
-                    {products.map(product => {
-                        const isAvailable = product.quantity > 0;
-                        return (
-                            <div key={product.id} className="product-card card">
-                                {product.image && (
-                                    <div className="product-image-container">
-                                        <img src={product.image} alt={product.name} className="product-image" onError={(e) => e.target.style.display = 'none'} />
-                                    </div>
-                                )}
-                                <div className="product-header">
-                                    <h3>{product.name}</h3>
-                                    {isAvailable ? (
-                                        <span className="stock-badge in-stock">Disponible</span>
-                                    ) : (
-                                        <span className="stock-badge low-stock">Agotado</span>
-                                    )}
-                                </div>
-                                <p className="product-price">${Number(product.price).toFixed(2)}</p>
-                                {product.description && <p className="product-desc">{product.description}</p>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="search-bar">
+                        <input
+                            type="text"
+                            placeholder="Buscar en el catálogo..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '1rem',
+                                fontSize: '1.1rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                color: 'white'
+                            }}
+                        />
+                    </div>
 
-                                {isAvailable && (
-                                    <div className="product-actions" style={{ justifyContent: 'center' }}>
-                                        <button className="btn btn-primary" onClick={() => addToCart(product)}>
-                                            Agregar al Carrito
-                                        </button>
+                    {filteredProducts.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.6)' }}>
+                            <p style={{ fontSize: '1.2rem' }}>No encontramos lo que buscas.</p>
+                            <small>Prueba con otro término de búsqueda.</small>
+                        </div>
+                    ) : (
+                        <div className="product-grid">
+                            {filteredProducts.map(product => {
+                                const isAvailable = product.quantity > 0;
+                                return (
+                                    <div key={product.id} className="product-card card">
+                                        {product.image && (
+                                            <div className="product-image-container">
+                                                <img src={product.image} alt={product.name} className="product-image" onError={(e) => e.target.style.display = 'none'} />
+                                            </div>
+                                        )}
+                                        <div className="product-header">
+                                            <h3>{product.name}</h3>
+                                            {isAvailable ? (
+                                                <span className="stock-badge in-stock">Disponible</span>
+                                            ) : (
+                                                <span className="stock-badge low-stock">Agotado</span>
+                                            )}
+                                        </div>
+                                        <p className="product-price">${Number(product.price).toFixed(2)}</p>
+                                        {product.description && <p className="product-desc">{product.description}</p>}
+
+                                        {isAvailable && (
+                                            <div className="product-actions" style={{ justifyContent: 'center' }}>
+                                                <button className="btn btn-primary" onClick={() => addToCart(product)}>
+                                                    Agregar al Carrito
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
+
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Floating/Fixed Cart */}
