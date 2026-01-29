@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function SalesRegister({ products, customers, onSell }) {
     const [cart, setCart] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState('');
     const [qty, setQty] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const product = products.find(p => p.id === selectedProduct);
 
@@ -14,7 +16,7 @@ export function SalesRegister({ products, customers, onSell }) {
 
         // Check if enough stock
         if (product.quantity < qty) {
-            alert('No hay suficiente stock');
+            toast.error('No hay suficiente stock');
             return;
         }
 
@@ -27,6 +29,7 @@ export function SalesRegister({ products, customers, onSell }) {
 
         setSelectedProduct('');
         setQty(1);
+        setSearchTerm(''); // Optional: clear search after adding
     };
 
     const handleCheckout = () => {
@@ -42,7 +45,7 @@ export function SalesRegister({ products, customers, onSell }) {
         onSell(saleData);
         setCart([]);
         setSelectedCustomer('');
-        alert('Venta registrada con éxito');
+        toast.success('Venta registrada con éxito');
     };
 
     const grandTotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
@@ -62,11 +65,21 @@ export function SalesRegister({ products, customers, onSell }) {
             <form onSubmit={addToCart} className="form-row" style={{ alignItems: 'end' }}>
                 <div className="form-group" style={{ flex: 2 }}>
                     <label>Producto</label>
+                    <input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ marginBottom: '0.5rem', width: '100%', padding: '0.5rem' }}
+                    />
                     <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} required>
                         <option value="">Seleccionar...</option>
-                        {products.filter(p => p.quantity > 0).map(p => (
-                            <option key={p.id} value={p.id}>{p.name} (${p.price}) - Stock: {p.quantity}</option>
-                        ))}
+                        {products
+                            .filter(p => p.quantity > 0)
+                            .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                            .map(p => (
+                                <option key={p.id} value={p.id}>{p.name} (${p.price}) - Stock: {p.quantity}</option>
+                            ))}
                     </select>
                 </div>
                 <div className="form-group">

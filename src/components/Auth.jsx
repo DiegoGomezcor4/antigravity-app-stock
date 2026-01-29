@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 
 export function Auth() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [message, setMessage] = useState(null); // { type: 'error' | 'success', text: '' }
     const [isLogin, setIsLogin] = useState(true); // true = Login, false = Register
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage(null);
 
         try {
             if (isLogin) {
@@ -28,10 +27,10 @@ export function Auth() {
                     password,
                 });
                 if (error) throw error;
-                setMessage({ type: 'success', text: '¡Registro exitoso! Revisa tu email para confirmar.' });
+                toast.success('¡Registro exitoso! Revisa tu email para confirmar.');
             }
         } catch (error) {
-            setMessage({ type: 'error', text: error.message });
+            toast.error(error.message);
         } finally {
             setLoading(false);
         }
@@ -50,18 +49,9 @@ export function Auth() {
                     {isLogin ? 'Iniciar Sesión' : 'Registrarse'}
                 </h1>
 
-                {message && (
-                    <div style={{
-                        padding: '0.75rem',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: '1rem',
-                        backgroundColor: message.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                        color: message.type === 'error' ? 'var(--color-danger)' : 'var(--color-success)',
-                        fontSize: '0.9rem'
-                    }}>
-                        {message.text}
-                    </div>
-                )}
+                <h1 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--color-primary)' }}>
+                    {isLogin ? 'Iniciar Sesión' : 'Registrarse'}
+                </h1>
 
                 <form onSubmit={handleAuth}>
                     <div className="form-group">
@@ -97,7 +87,7 @@ export function Auth() {
                 <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
                     {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
                     <button
-                        onClick={() => { setIsLogin(!isLogin); setMessage(null); }}
+                        onClick={() => { setIsLogin(!isLogin); }}
                         style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
                     >
                         {isLogin ? 'Regístrate' : 'Inicia Sesión'}

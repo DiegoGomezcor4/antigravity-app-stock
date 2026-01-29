@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function CustomerManager({ customers, onAdd, onUpdate, onDelete }) {
     const defaultState = { name: '', contact: '', email: '' };
@@ -11,9 +12,11 @@ export function CustomerManager({ customers, onAdd, onUpdate, onDelete }) {
 
         if (editingId) {
             onUpdate(editingId, formData);
+            toast.success('Cliente actualizado');
             setEditingId(null);
         } else {
             onAdd(formData);
+            toast.success('Cliente registrado');
         }
         setFormData(defaultState);
     };
@@ -82,7 +85,12 @@ export function CustomerManager({ customers, onAdd, onUpdate, onDelete }) {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button className="btn-icon" onClick={() => startEdit(customer)} style={{ fontSize: '1rem', width: 'auto', padding: '0 0.5rem' }}>✏️</button>
-                            <button className="btn-danger-outline" onClick={() => onDelete(customer.id)}>Eliminar</button>
+                            <button className="btn-danger-outline" onClick={() => {
+                                if (confirm('¿Estás seguro de eliminar este cliente?')) {
+                                    onDelete(customer.id);
+                                    toast.success('Cliente eliminado');
+                                }
+                            }}>Eliminar</button>
                         </div>
                     </div>
                 ))}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
     const defaultState = {
@@ -43,8 +44,10 @@ export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
 
         if (editingProduct) {
             onUpdate(editingProduct.id, productData);
+            toast.success('Producto actualizado');
         } else {
             onAdd(productData);
+            toast.success('Producto agregado');
         }
 
         setFormData(defaultState);
@@ -55,8 +58,37 @@ export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const margin = (Number(formData.price) || 0) - (Number(formData.cost) || 0);
-    const marginPercent = Number(formData.price) ? ((margin / Number(formData.price)) * 100).toFixed(1) : 0;
+    const handleMarginChange = (e) => {
+        const marginValue = e.target.value;
+        const cost = Number(formData.cost) || 0;
+
+        if (!marginValue) {
+            setFormData(prev => ({ ...prev, price: cost })); // If no margin, price equals cost
+            return;
+        }
+
+        const marginPercent = Number(marginValue);
+        const newPrice = cost * (1 + marginPercent / 100);
+
+        setFormData(prev => ({
+            ...prev,
+            price: newPrice.toFixed(2) // Keep 2 decimal places
+        }));
+    };
+
+    // Calculate current margin percent based on price and cost for display/default value
+    // Formula: Margin% = ((Price - Cost) / Cost) * 100
+    const cost = Number(formData.cost) || 0;
+    const price = Number(formData.price) || 0;
+
+    // Calculate display margin. 
+    // If cost is 0, margin is technically infinite or undefined, define as 0 or 100 based on price? 
+    // If price exists and cost is 0, it's 100% profit (infinite markup). Let's handle gracefully.
+    const currentMarginPercent = (cost > 0 && price > 0)
+        ? (((price - cost) / cost) * 100).toFixed(1)
+        : (cost === 0 && price > 0 ? '100' : '0');
+
+    const marginAmount = price - cost;
 
     return (
         <form onSubmit={handleSubmit} className="product-form card" style={editingProduct ? { border: '1px solid var(--color-primary)' } : {}}>
@@ -136,6 +168,22 @@ export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
                 </div>
 
                 <div className="form-group">
+                    <label htmlFor="margin">Margen %</label>
+                    <input
+                        type="number"
+                        id="margin"
+                        name="margin"
+                        value={currentMarginPercent}
+                        onChange={handleMarginChange}
+                        placeholder="%"
+                        min="0"
+                        step="0.1"
+                        disabled={!formData.cost || Number(formData.cost) === 0}
+                        title={(!formData.cost || Number(formData.cost) === 0) ? "Ingrese un costo primero" : ""}
+                    />
+                </div>
+
+                <div className="form-group">
                     <label htmlFor="price">Precio Venta ($)</label>
                     <input
                         type="number"
@@ -149,7 +197,7 @@ export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
                 </div>
             </div>
 
-            {formData.price && formData.cost ? (
+            {(price > 0 || cost > 0) && (
                 <div className="margin-info" style={{
                     marginBottom: '1rem',
                     padding: '0.5rem',
@@ -157,9 +205,9 @@ export function ProductForm({ onAdd, onUpdate, editingProduct, onCancelEdit }) {
                     borderRadius: '4px',
                     fontSize: '0.9rem'
                 }}>
-                    <span>Margen: <strong>${margin.toFixed(2)}</strong> ({marginPercent}%)</span>
+                    <span>Ganancia Neta: <strong>${marginAmount.toFixed(2)}</strong></span>
                 </div>
-            ) : null}
+            )}
 
             <div className="form-group">
                 <label htmlFor="description">Descripción (Opcional)</label>

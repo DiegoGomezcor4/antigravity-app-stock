@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function ProductList({ products, onDelete, onUpdateStock, onEdit }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +94,12 @@ export function ProductList({ products, onDelete, onUpdateStock, onEdit }) {
                                     </button>
                                     <button
                                         className="btn-danger-outline"
-                                        onClick={() => onDelete(product.id)}
+                                        onClick={() => {
+                                            if (confirm('¿Estás seguro de eliminar este producto?')) {
+                                                onDelete(product.id);
+                                                toast.success('Producto eliminado');
+                                            }
+                                        }}
                                     >
                                         Eliminar
                                     </button>

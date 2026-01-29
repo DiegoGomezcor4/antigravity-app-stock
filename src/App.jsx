@@ -8,9 +8,11 @@ import { ProductList } from './components/ProductList'
 import { CustomerManager } from './components/CustomerManager'
 import { SalesRegister } from './components/SalesRegister'
 import { SalesReport } from './components/SalesReport'
+import { Dashboard } from './components/Dashboard'
 import { useStockUpdates } from './hooks/useStockUpdates'
 import { useCustomers } from './hooks/useCustomers'
 import { useSales } from './hooks/useSales'
+import { Toaster } from 'sonner'
 
 function App() {
   const [session, setSession] = useState(null);
@@ -33,7 +35,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const [currentView, setCurrentView] = useState('inventory'); // inventory, customers, sales, reports
+  const [currentView, setCurrentView] = useState('dashboard'); // dashboard, inventory, customers, sales, reports
   const [editingProduct, setEditingProduct] = useState(null);
 
   const { products, addProduct, updateProduct, deleteProduct } = useStockUpdates();
@@ -91,6 +93,7 @@ function App() {
 
     // 2. Delete Sale
     deleteSale(sale.id);
+    toast.success('Venta anulada y stock restaurado');
   };
 
   const handleUpdateProduct = (id, data) => {
@@ -104,6 +107,12 @@ function App() {
 
   const renderContent = () => {
     switch (currentView) {
+      case 'dashboard':
+        return (
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <Dashboard products={products} sales={sales} />
+          </div>
+        );
       case 'inventory':
         return (
           <div className="main-layout">
@@ -162,6 +171,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <Toaster position="top-right" richColors />
       <header className="app-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1 }}></div>
@@ -174,6 +184,7 @@ function App() {
         </div>
 
         <nav className="main-nav">
+          <button className={`nav-btn ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => setCurrentView('dashboard')}>🏠 Inicio</button>
           <button className={`nav-btn ${currentView === 'inventory' ? 'active' : ''}`} onClick={() => setCurrentView('inventory')}>📦 Inventario</button>
           <button className={`nav-btn ${currentView === 'sales' ? 'active' : ''}`} onClick={() => setCurrentView('sales')}>💰 Ventas</button>
           <button className={`nav-btn ${currentView === 'customers' ? 'active' : ''}`} onClick={() => setCurrentView('customers')}>👥 Clientes</button>
